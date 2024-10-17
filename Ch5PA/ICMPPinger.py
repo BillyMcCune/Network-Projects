@@ -41,9 +41,9 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         #to receive the structure ICMP_ECHO_REPLY and fetch the information you need, such as checksum, sequence number, time to live (TTL), etc. Study the “sendOnePing” method before trying to complete the “receiveOnePing” method.
         # Fetch the ICMP header from the IP packet
 
-        IPHead = struct.unpack("!BBHHHBBH4s4s",recPacket[:20])
-        TLLRecv = IPHead[5]
-        ICMPHead = struct.unpack("bbHHh",recPacket[20:28])
+        IPHead = struct.unpack("!BBHHHBBH4s4s",recPacket[:20]) #get head of IP
+        TLLRecv = IPHead[5] #get TLL
+        ICMPHead = struct.unpack("bbHHh",recPacket[20:28]) #unpack head
 
         # Your program can only detect timeouts in receiving ICMP echo responses. Modify the Pinger
         # program to parse the ICMP response error codes and display the corresponding error results to the
@@ -53,31 +53,35 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         # Unreachable”, and output other messages as “Other Errors”. 
 
         typeRecv = ICMPHead[0] #the first item is the type
-        codeRecv = ICMPHead[1]
-        if typeRecv == 0 and codeRecv == 0: 
-            typeRecv = 0
-        elif typeRecv == 3 and codeRecv == 0:
-            print("Destinaiton network unreachable")
-        elif typeRecv == 3 and codeRecv == 1: 
-            print("Destination Host Unreachable")
-        elif typeRecv == 3 and codeRecv == 2:
-            print("Destination protocol unreachable")
+        codeRecv = ICMPHead[1] #get code
+        if typeRecv == 0 and codeRecv == 0: #check if chill
+            typeRecv = 0 #do nothing 
+        elif typeRecv == 3 and codeRecv == 0: #check if network is unreachable
+            print("Destinaton network unreachable") #print message
+            return "packet lost"
+        elif typeRecv == 3 and codeRecv == 1: #check if destination host unreachable
+            print("Destination Host Unreachable") #print message
+            return "packet lost"
+        elif typeRecv == 3 and codeRecv == 2: #check if protocol unreachable
+            print("Destination protocol unreachable") #print message
+            return "packet lost"
         else:
-            print("Other Errors")
+            print("Other Errors") #print other errors
+            return "packet lost"
 
         checksumRecv = ICMPHead[2] #the second item is the checksum call checksum method to return true
         IDRecv = ICMPHead[3] #get sequence num
         sequenceNumRecv = ICMPHead[4] #get TTL on packet
         if ID == IDRecv:
-            print(f"This is the address {addr}")
-            print(f"This was the destination address {destAddr}")
-            print(f"This is the ICMP type {typeRecv}")
-            print(f"This is the codeRecv {codeRecv}")
-            print(f"This is the ICMP checksum {checksumRecv}")
-            print(f"This is the ICMP ID {IDRecv}")
-            print(f"This is the ICMP sequenceNum {sequenceNumRecv}")
-            print(f"This is the ICMP TLL {TLLRecv}")
-            return timeReceived - startedSelect
+        #     print(f"This is the address {addr}")
+        #     print(f"This was the destination address {destAddr}")
+        #     print(f"This is the ICMP type {typeRecv}")
+        #     print(f"This is the codeRecv {codeRecv}")
+        #     print(f"This is the ICMP checksum {checksumRecv}")
+        #     print(f"This is the ICMP ID {IDRecv}")
+        #     print(f"This is the ICMP sequenceNum {sequenceNumRecv}")
+        #     print(f"This is the ICMP TLL {TLLRecv}")
+            return timeReceived - startedSelect 
 
         timeLeft = timeLeft - howLongInSelect
         if timeLeft <= 0:
@@ -132,37 +136,39 @@ def doOnePing(destAddr, timeout):
 def ping(host, timeout=1):
     # timeout=1 means: If one second goes by without a reply from the server,
     # the client assumes that either the client's ping or the server's pong is lost
-    avgRTT = 0
-    minRTT = 1000000
-    maxRTT = 0
-    hitPingNum = 0
-    genPingNum = 0
-    numMissed = 0
-    dest = gethostbyname(host)
+    avgRTT = 0 #initialize value
+    minRTT = 1000000 #initialize value
+    maxRTT = 0 #initialize value
+    hitPingNum = 0 #initialize value
+    genPingNum = 0 #initialize value
+    numMissed = 0 #initialize value
+    dest = gethostbyname(host) 
     print("Pinging " + dest + " using Python:")
     print("")
     # Send ping requests to a server separated by approximately one second
     while 1:
-        delay = doOnePing(dest, timeout)
-        print(delay)
-        genPingNum += 1
+        delay = doOnePing(dest, timeout) #get delay
+        genPingNum += 1 #iterate general ping num
 
         if type(delay) == float or type(delay) == int: #check if delay is valid
-            hitPingNum += 1
+            hitPingNum += 1 #iterate hit ping num for each ping that hits
             if hitPingNum == 1:
-                avgRTT = delay 
+                avgRTT = delay  #RTT is the delay *2
             else:
                 avgRTT = ((avgRTT * (hitPingNum - 1)) + delay) / hitPingNum  #run avg calculation
 
-            minRTT = min(minRTT, delay)
-            maxRTT = max(maxRTT, delay)
+            minRTT = min(minRTT, delay) #max calculation
+            maxRTT = max(maxRTT, delay) #min calculation
         else:
-            numMissed += 1
-        print(f"The AvgRTT is: {avgRTT}.")
-        print(f"The MinRTT is: {minRTT}.")
-        print(f"The MaxRRT is: {maxRTT}.")
-        print(f"The Packet Loss Percentage is: {((numMissed / genPingNum) * 100):.2f}%")
-        time.sleep(1)
+            numMissed += 1 
+        if type(delay) == float or type(delay) == int: #if error isn't thrown print stats
+            print(f"The RTT for this ping message was: {delay}") #print RTT
+            print(f"The RTT for this packet was:")
+            print(f"The AvgRTT is: {avgRTT}.") #print AvgRTT
+            print(f"The MinRTT is: {minRTT}.") #print minRTT
+            print(f"The MaxRRT is: {maxRTT}.") #print maxRTT
+        print(f"The Packet Loss Percentage is: {((numMissed / genPingNum) * 100):.2f}%") #print packet loss percentage
+        time.sleep(1) #eepy so it sends one ping every second
 
 ping("umass.edu")
 print("--------------------------------------------")
