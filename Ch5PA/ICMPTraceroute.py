@@ -92,9 +92,9 @@ def get_route(hostname):
             else:
                 # Fill in start
                 # Fetch the icmp type from the IP packet
-                icmpHeader = recvPacket[20:28]
+                icmpHeader = recvPacket[20:28] #get header 
                 ICMPType, Code, myChecksum, myID, sequence = struct.unpack("bbHHh",
-                icmpHeader)
+                icmpHeader) #get ICMP type by unpacking packet
                 #Fill in end
                 if ICMPType == 11:
                     bytes = struct.calcsize("d")

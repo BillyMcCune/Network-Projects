@@ -163,7 +163,6 @@ def ping(host, timeout=1):
             numMissed += 1 
         if type(delay) == float or type(delay) == int: #if error isn't thrown print stats
             print(f"The RTT for this ping message was: {delay}") #print RTT
-            print(f"The RTT for this packet was:")
             print(f"The AvgRTT is: {avgRTT}.") #print AvgRTT
             print(f"The MinRTT is: {minRTT}.") #print minRTT
             print(f"The MaxRRT is: {maxRTT}.") #print maxRTT
